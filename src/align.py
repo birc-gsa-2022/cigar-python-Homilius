@@ -32,7 +32,7 @@ def get_edits(p: str, q: str):
         CIGAR = ''
     else:
         p_out = p.replace('-','')
-        q_out = p.replace('-','')
+        q_out = q.replace('-','')
         CIGAR = CIGAR
 
     return p_out, q_out , CIGAR
