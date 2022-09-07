@@ -1,7 +1,7 @@
 """A module for translating between alignments and edits sequences."""
 
 
-def get_edits(p: str, q: str) -> tuple[str, str, str]:
+def get_edits(p: str, q: str):
     """Extract the edit operations from a pairwise alignment.
 
     Args:
@@ -16,11 +16,73 @@ def get_edits(p: str, q: str) -> tuple[str, str, str]:
 
     """
     assert len(p) == len(q)
-    # FIXME: do the actual calculations here
-    return '', '', ''
+
+    CIGAR = ''
+    for i in range(len(p)):
+        if p[i] != '-' and q[i] != '-':
+            CIGAR += 'M'
+        if p[i] == '-' and q[i] != '-':
+            CIGAR += 'I'
+        if p[i] != '-' and q[i] == '-':
+            CIGAR += 'D'
+
+    if len(p) == 0 and len(q) == 0:
+        p_out = ''
+        q_out = ''
+        CIGAR = ''
+    else:
+        p_out = p.replace('-','')
+        q_out = p.replace('-','')
+        CIGAR = CIGAR
+
+    return p_out, q_out , CIGAR
 
 
-def local_align(p: str, x: str, i: int, edits: str) -> tuple[str, str]:
+def align(p: str, q: str, edits: str):
+    """Align two sequences from a sequence of edits.
+
+    Args:
+        p (str): The first sequence to align.
+        q (str): The second sequence to align
+        edits (str): The list of edits to apply, given as a string
+
+    Returns:
+        tuple[str, str]: The two rows in the pairwise alignment
+
+    >>> align("ACCACAGTCATA", "ACAGAGTACAAA", "MDMMMMMMIMMMM")
+    ('ACCACAGT-CATA', 'A-CAGAGTACAAA')
+
+    """
+    p_align = ''
+    q_align = ''
+    
+    ins=0
+    dels=0
+    for i in range(0,len(edits),1):
+        
+        if edits[i:] == 'M'*len(edits[i:]):
+            p_align += p[i-ins:]
+            q_align += q[i-dels:]
+            break
+        
+        if edits[i] == 'M':
+            p_align += p[i-ins]
+            q_align += q[i-dels]
+
+        if edits[i] == 'I':
+            p_align += '-'
+            q_align += q[i-dels]
+            ins+=1
+
+        if edits[i] == 'D':
+            p_align += p[i-ins]
+            q_align += '-'
+            dels+=1
+
+    return p_align, q_align
+
+
+def local_align(p: str, x: str, i: int, edits: str):
     """Align two sequences from a sequence of edits.
 
     Args:
@@ -36,30 +98,13 @@ def local_align(p: str, x: str, i: int, edits: str) -> tuple[str, str]:
     ('ACCACAGT-CATA', 'A-CAGAGTACAAA')
 
     """
-    # FIXME: Compute the alignment rows
-    return '', ''
+    edit_counts = edits.count('I') + edits.count('D')
+    ref_subset = x[i:len(p)+edit_counts]
+
+    return align(p,ref_subset,edits)
 
 
-def align(p: str, q: str, edits: str) -> tuple[str, str]:
-    """Align two sequences from a sequence of edits.
-
-    Args:
-        p (str): The first sequence to align.
-        q (str): The second sequence to align
-        edits (str): The list of edits to apply, given as a string
-
-    Returns:
-        tuple[str, str]: The two rows in the pairwise alignment
-
-    >>> align("ACCACAGTCATA", "ACAGAGTACAAA", "MDMMMMMMIMMMM")
-    ('ACCACAGT-CATA', 'A-CAGAGTACAAA')
-
-    """
-    # FIXME: Compute the alignment rows
-    return '', ''
-
-
-def edit_dist(p: str, x: str, i: int, edits: str) -> int:
+def edit_dist(p: str, x: str, i: int, edits: str):
     """Get the distance between p and the string that starts at x[i:]
     using the edits.
 
@@ -75,5 +120,13 @@ def edit_dist(p: str, x: str, i: int, edits: str) -> int:
     >>> edit_dist("accaaagta", "cgacaaatgtcca", 2, "MDMMIMMMMIIM")
     5
     """
-    # FIXME: Compute the edit distance
-    return -1
+    p = local_align(p,x,i,edits)[0]
+    string = local_align(p,x,i,edits)[1]
+    
+    counts=0
+    for i in range(len(p)):
+        if p[i] != string[i]:
+            counts+=1
+    
+    return counts
+
