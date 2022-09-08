@@ -3,7 +3,7 @@
 import re
 
 
-def split_pairs(cigar: str) -> list[tuple[int, str]]:
+def split_pairs(cigar: str):
     """Split a CIGAR string into a list of integer-operation pairs.
 
     Args:
@@ -24,7 +24,7 @@ def split_pairs(cigar: str) -> list[tuple[int, str]]:
     return [(int(i), op) for i, op in re.findall(r"(\d+)([^\d]+)", cigar)]
 
 
-def cigar_to_edits(cigar: str) -> str:
+def cigar_to_edits(cigar: str):
     """Expand the compressed CIGAR encoding into the full list of edits.
 
     Args:
@@ -37,11 +37,16 @@ def cigar_to_edits(cigar: str) -> str:
     'MDMMMMMMIMMMM'
 
     """
-    # FIXME: construct the edits sequence
-    return ""
+    CIGAR_pairs = split_pairs(cigar)
+    
+    edits = ''
+    for pair in CIGAR_pairs:
+        edits += int(pair[0]) * pair[1]
+    
+    return edits
 
 
-def split_blocks(x: str) -> list[str]:
+def split_blocks(x: str):
     """Split a string into blocks of equal character.
 
     Args:
@@ -60,7 +65,7 @@ def split_blocks(x: str) -> list[str]:
     return [m[0] for m in re.findall(r"((.)\2*)", x)]
 
 
-def edits_to_cigar(edits: str) -> str:
+def edits_to_cigar(edits: str):
     """Encode a sequence of edits as a CIGAR.
 
     Args:
@@ -73,5 +78,10 @@ def edits_to_cigar(edits: str) -> str:
     '1M1D6M1I4M'
 
     """
-    # FIXME: Compute the cigar
-    return ''
+    element_list = split_blocks(edits)
+    cigar=''
+    for a in element_list:
+        short = '{}{}'.format(len(a),a[0])
+        cigar+= short
+    
+    return cigar
