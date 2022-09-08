@@ -17,25 +17,26 @@ def get_edits(p: str, q: str):
     """
     assert len(p) == len(q)
 
-    CIGAR = ''
+    edits = ''  # edits to go from p to q
     for i in range(len(p)):
         if p[i] != '-' and q[i] != '-':
-            CIGAR += 'M'
+            edits += 'M'
         if p[i] == '-' and q[i] != '-':
-            CIGAR += 'I'
+            edits += 'I'
         if p[i] != '-' and q[i] == '-':
-            CIGAR += 'D'
+            edits += 'D'
 
     if len(p) == 0 and len(q) == 0:
         p_out = ''
         q_out = ''
-        CIGAR = ''
+        edits = ''
     else:
         p_out = p.replace('-','')
         q_out = q.replace('-','')
-        CIGAR = CIGAR
+        edits = edits
 
-    return p_out, q_out , CIGAR
+    return p_out, q_out , edits
+
 
 
 def align(p: str, q: str, edits: str):
@@ -58,7 +59,7 @@ def align(p: str, q: str, edits: str):
     
     ins=0
     dels=0
-    for i in range(0,len(edits),1):
+    for i in range(len(edits)):
         
         if edits[i:] == 'M'*len(edits[i:]):
             p_align += p[i-ins:]

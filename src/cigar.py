@@ -81,7 +81,7 @@ def edits_to_cigar(edits: str):
     element_list = split_blocks(edits)
     cigar=''
     for a in element_list:
-        short = '{}{}'.format(str(len(a)),str(a)[0])
+        short = '{}{}'.format(len(a),a[0])
         cigar+= short
     
     return cigar
